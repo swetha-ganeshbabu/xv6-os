@@ -3,6 +3,7 @@
 #include "user.h"
 #include "fcntl.h"
 
+// Defining the default value for tail in macro here
 #define DEFAULT_N 10
 #define READ_BUF 512
 
@@ -143,7 +144,7 @@ int main(int argc, char *argv[]) {
   int i;
   for (i = idx; i < argc; i++) {
     if (files > 1) {
-      printf(1, "==> %s <==\n", argv[i]);
+      printf(1, "=> %s <=\n", argv[i]);
     }
     print_last_n_file(argv[i], N);
     if (i != argc - 1) {
