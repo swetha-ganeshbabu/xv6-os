@@ -165,6 +165,7 @@ mkfs: mkfs.c fs.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
+#Adding the hello fro assignment 0 (for testing OS env) and assignment 1
 UPROGS=\
 	_cat\
 	_echo\
