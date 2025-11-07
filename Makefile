@@ -188,6 +188,11 @@ UPROGS=\
 	_test_nice1\
 	_test_nice2\
 	_test_nice3\
+	_primes\
+	_schedulertest1\
+	_schedulertest2\
+	_schedulertest3\
+
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

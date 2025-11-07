@@ -324,6 +324,7 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *highpriority;
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -333,10 +334,22 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
+    
+    // Find the process with the lowest nice value (highest priority)
+    highpriority = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
+      
+      // If we haven't found a runnable process yet, or this one has higher priority
+      if(highpriority == 0 || p->nice < highpriority->nice)
+        highpriority = p;
+    }
+    
+    // If we found a runnable process, run it
+    if(highpriority != 0){
+      p = highpriority;
+      
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -351,8 +364,8 @@ scheduler(void)
       // It should have changed its p->state before coming back.
       c->proc = 0;
     }
+    
     release(&ptable.lock);
-
   }
 }
 
