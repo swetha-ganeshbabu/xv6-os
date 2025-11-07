@@ -1,3 +1,10 @@
+#define NLOCKS 7  // Maximum 7 locks/resources
+
+struct lock_t {
+  int locked;           // 0 = free, 1 = locked
+  int holder_pid;       // PID of process holding lock
+};
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -49,7 +56,9 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  int nice;                    
+  int nice; 
+  int original_nice;           // Original nice before inheritance
+  int holding_lock;            // Lock ID this process holds (-1 if none)                   
 };
 
 // Process memory is laid out contiguously, low addresses first:

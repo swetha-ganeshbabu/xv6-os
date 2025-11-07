@@ -169,7 +169,6 @@ mkfs: mkfs.c fs.h
 UPROGS=\
 	_cat\
 	_echo\
-	_forktest\
 	_grep\
 	_init\
 	_kill\
@@ -178,8 +177,6 @@ UPROGS=\
 	_mkdir\
 	_rm\
 	_sh\
-	_stressfs\
-	_usertests\
 	_wc\
 	_zombie\
 	_hello\
@@ -192,7 +189,12 @@ UPROGS=\
 	_schedulertest1\
 	_schedulertest2\
 	_schedulertest3\
-
+	_locktest1\
+	_locktest2\
+	_locktest3\
+# _forktest\
+# _stressfs\
+# _usertests\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

@@ -12,6 +12,8 @@ extern struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
+extern struct lock_t resource_locks[NLOCKS];
+
 
 int
 sys_fork(void)
@@ -127,4 +129,95 @@ sys_nice(void)
   release(&ptable.lock);
   
   return -1;  // Process not found
+}
+int
+sys_lock(void)
+{
+  int lock_id;
+  int idx;
+  int holder_pid;
+  struct proc *p;
+  struct proc *holder;
+  
+  p = myproc();
+  
+  if(argint(0, &lock_id) < 0)
+    return -1;
+  
+  if(lock_id < 1 || lock_id > NLOCKS)
+    return -1;
+  
+  idx = lock_id - 1;
+  
+  acquire(&ptable.lock);
+  
+  while(resource_locks[idx].locked) {
+    // Lock is held - implement priority inheritance
+    holder_pid = resource_locks[idx].holder_pid;
+    
+    // Find the holder process and boost priority if needed
+    for(holder = ptable.proc; holder < &ptable.proc[NPROC]; holder++) {
+      if(holder->pid == holder_pid) {
+        if(p->nice < holder->nice) {
+          if(holder->original_nice == holder->nice) {
+            holder->original_nice = holder->nice;
+          }
+          holder->nice = p->nice;
+        }
+        break;
+      }
+    }
+    
+    // Sleep waiting for the lock (sleep handles ptable.lock)
+    sleep(&resource_locks[idx], &ptable.lock);
+  }
+  
+  // Lock is now free, acquire it
+  resource_locks[idx].locked = 1;
+  resource_locks[idx].holder_pid = p->pid;
+  p->holding_lock = lock_id;
+  
+  release(&ptable.lock);
+  return 0;
+}
+int
+sys_release(void)
+{
+  int lock_id;
+  int idx;
+  struct proc *p;
+  
+  p = myproc();
+  
+  if(argint(0, &lock_id) < 0)
+    return -1;
+  
+  if(lock_id < 1 || lock_id > NLOCKS)
+    return -1;
+  
+  idx = lock_id - 1;
+  
+  acquire(&ptable.lock);
+  
+  if(resource_locks[idx].holder_pid != p->pid) {
+    release(&ptable.lock);
+    return -1;
+  }
+  
+  // Release the lock
+  resource_locks[idx].locked = 0;
+  resource_locks[idx].holder_pid = -1;
+  p->holding_lock = -1;
+  
+  // Restore original priority if it was boosted
+  if(p->nice != p->original_nice) {
+    p->nice = p->original_nice;
+  }
+  
+  release(&ptable.lock);
+  
+  // Wake up processes waiting (do this AFTER releasing ptable.lock)
+  wakeup(&resource_locks[idx]);
+  
+  return 0;
 }

@@ -13,7 +13,7 @@ struct {
 } ptable;
 
 static struct proc *initproc;
-
+struct lock_t resource_locks[NLOCKS];
 int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
@@ -23,7 +23,14 @@ static void wakeup1(void *chan);
 void
 pinit(void)
 {
+  int i;
   initlock(&ptable.lock, "ptable");
+  
+  // Initialize all resource locks
+  for(i = 0; i < NLOCKS; i++){
+    resource_locks[i].locked = 0;
+    resource_locks[i].holder_pid = -1;
+  }
 }
 
 // Must be called with interrupts disabled
@@ -89,6 +96,8 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->nice = 2;   
+  p->original_nice = 2;    
+  p->holding_lock = -1;   
 
   release(&ptable.lock);
 
