@@ -1,8 +1,8 @@
 # xv6 Priority-Based Scheduling with Priority Inheritance
 ## Operating Systems Homework 3
 
-**Student Names:** [Swetha Ganesh Babu, Sriram Madhiyalagan]
-**Net IDs:** [sg8554, sm12155]
+**Student Names:** Swetha Ganesh Babu, Sriram Madhiyalagan
+**Net IDs:** sg8554, sm12155
 
 ---
 
