@@ -214,12 +214,11 @@ sys_release(void)
     p->nice = p->original_nice;
     p->has_inherited_priority = 0;  // Clear the flag
   }
-  // If has_inherited_priority is 0, the nice value was set by user, don't touch it!
   
-  // Wake up processes waiting
+  release(&ptable.lock);  // Release BEFORE wakeup
+  
+  // Wake up processes waiting (now safe to call wakeup)
   wakeup(&resource_locks[idx]);
-  
-  release(&ptable.lock);
   
   return 0;
 }
