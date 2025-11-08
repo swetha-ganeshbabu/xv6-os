@@ -2,12 +2,21 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid1, pid2;
   
-  printf(1, "\n=== Scheduler Test 2: CPU Time Distribution ===\n");
+  print_header("schedulertest2 - CPU Time Distribution");
   printf(1, "Two processes counting - higher priority should count more\n\n");
   
   // High priority process
@@ -45,6 +54,9 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Test Complete ===\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Test Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "========================================\n\n");
   exit();
 }

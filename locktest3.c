@@ -2,12 +2,21 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid_low, pid_high;
   
-  printf(1, "\n=== Lock Test 3: Priority Inheritance ===\n\n");
+  print_header("locktest3 - Priority Inheritance");
   printf(1, "This test shows priority inheritance in action:\n");
   printf(1, "- Low priority process holds lock\n");
   printf(1, "- High priority process waits for lock\n");
@@ -54,6 +63,9 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Lock Test 3 Complete ===\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Lock Test 3 Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "========================================\n\n");
   exit();
 }

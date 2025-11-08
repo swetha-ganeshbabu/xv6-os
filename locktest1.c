@@ -2,12 +2,21 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid1, pid2;
   
-  printf(1, "\n=== Lock Test 1: Basic Lock/Unlock ===\n\n");
+  print_header("locktest1 - Basic Lock/Unlock");
   
   // Process 1 - acquires lock 1
   pid1 = fork();
@@ -51,6 +60,9 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Lock Test 1 Complete ===\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Lock Test 1 Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "========================================\n\n");
   exit();
 }

@@ -2,13 +2,22 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid = getpid();
   int result;
   
-  printf(1, "\n=== Test 2: Edge Cases ===\n\n");
+  print_header("test_nice2 - Edge Cases");
   
   // Test invalid nice value (too high)
   printf(1, "Test 1: Invalid value 5 (out of range)...\n");
@@ -54,6 +63,10 @@ main(int argc, char *argv[])
     printf(1, "  FAIL - Rejected valid maximum value\n\n");
   }
   
-  printf(1, "=== Test 2 Complete ===\n\n");
+  printf(1, "========================================\n");
+  printf(1, "Test 2 Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "========================================\n\n");
+  
   exit();
 }

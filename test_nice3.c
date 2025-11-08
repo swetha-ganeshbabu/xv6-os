@@ -2,12 +2,21 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid1, pid2, pid3;
   
-  printf(1, "\n=== Test 3: Multiple Processes with Different Nice Values ===\n\n");
+  print_header("test_nice3 - Multiple Processes with Different Nice Values");
   
   pid1 = fork();
   if(pid1 == 0) {
@@ -47,6 +56,10 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Test 3 Complete ===\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Test 3 Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "========================================\n\n");
+  
   exit();
 }

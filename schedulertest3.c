@@ -2,6 +2,15 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 isprime(int n)
 {
@@ -22,7 +31,7 @@ main(int argc, char *argv[])
 {
   int pid1, pid2, pid3;
   
-  printf(1, "\n=== Scheduler Test 3: Progress Tracking ===\n");
+  print_header("schedulertest3 - Progress Tracking");
   printf(1, "Watching which process makes more progress\n\n");
   
   // Nice value 0 (highest priority)
@@ -86,7 +95,10 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Test Complete ===\n");
-  printf(1, "Higher priority (Nice=0) should show more progress updates\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Test Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "Higher priority (Nice=0) should show more progress updates\n");
+  printf(1, "========================================\n\n");
   exit();
 }

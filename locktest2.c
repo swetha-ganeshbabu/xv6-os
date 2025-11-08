@@ -2,12 +2,21 @@
 #include "stat.h"
 #include "user.h"
 
+void print_header(char* testname) {
+    printf(1, "\n========================================\n");
+    printf(1, "User: swetha-ganeshbabu\n");
+    printf(1, "Test: %s\n", testname);
+    printf(1, "PID: %d\n", getpid());
+    printf(1, "Start Time: %d ticks\n", uptime());
+    printf(1, "========================================\n\n");
+}
+
 int
 main(int argc, char *argv[])
 {
   int pid_low, pid_high;
   
-  printf(1, "\n=== Lock Test 2: Priority Inversion Demonstration ===\n\n");
+  print_header("locktest2 - Priority Inversion Demonstration");
   
   // Low priority process acquires lock
   pid_low = fork();
@@ -51,7 +60,10 @@ main(int argc, char *argv[])
   wait();
   wait();
   
-  printf(1, "\n=== Lock Test 2 Complete ===\n");
-  printf(1, "Notice: High priority had to wait for low priority!\n\n");
+  printf(1, "\n========================================\n");
+  printf(1, "Lock Test 2 Complete\n");
+  printf(1, "End Time: %d ticks\n", uptime());
+  printf(1, "Notice: High priority had to wait for low priority!\n");
+  printf(1, "========================================\n\n");
   exit();
 }
