@@ -98,6 +98,8 @@ found:
   p->nice = 2;   
   p->original_nice = 2;    
   p->holding_lock = -1;   
+  p->has_inherited_priority = 0;  // ADD THIS LINE
+
 
   release(&ptable.lock);
 
@@ -209,6 +211,8 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->nice = curproc->nice;           // Child inherits parent's nice value
+  np->original_nice = curproc->original_nice; 
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -333,51 +337,76 @@ void
 scheduler(void)
 {
   struct proc *p;
-  struct proc *highpriority;
   struct cpu *c = mycpu();
   c->proc = 0;
   
   for(;;){
-    // Enable interrupts on this processor.
     sti();
-
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     
-    // Find the process with the lowest nice value (highest priority)
-    highpriority = 0;
+#ifdef PRIORITY_SCHEDULER
+    // Priority scheduling with round-robin within priority levels
+    static int last_pid[5] = {0, 0, 0, 0, 0}; // Track last scheduled PID per priority
+    
+    // Find the best priority level
+    int best_priority = 5;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state == RUNNABLE && p->nice < best_priority){
+        best_priority = p->nice;
+      }
+    }
+    
+    if(best_priority < 5){
+      struct proc *selected = 0;
+      struct proc *first_eligible = 0;
+      
+      // Look for next process in round-robin order
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state == RUNNABLE && p->nice == best_priority){
+          if(!first_eligible) first_eligible = p;
+          if(p->pid > last_pid[best_priority]){
+            selected = p;
+            break;
+          }
+        }
+      }
+      
+      // Wrap around if needed
+      if(!selected) {
+        selected = first_eligible;
+        last_pid[best_priority] = 0; // Reset for next round
+      }
+      
+      if(selected){
+        p = selected;
+        last_pid[best_priority] = p->pid;
+        
+        c->proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+        c->proc = 0;
+      }
+    }
+#else
+    // Original round-robin scheduler
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
       
-      // If we haven't found a runnable process yet, or this one has higher priority
-      if(highpriority == 0 || p->nice < highpriority->nice)
-        highpriority = p;
-    }
-    
-    // If we found a runnable process, run it
-    if(highpriority != 0){
-      p = highpriority;
-      
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
       c->proc = 0;
     }
+#endif
     
     release(&ptable.lock);
   }
 }
-
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this

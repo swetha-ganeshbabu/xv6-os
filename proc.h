@@ -58,7 +58,8 @@ struct proc {
   char name[16];               // Process name (debugging)
   int nice; 
   int original_nice;           // Original nice before inheritance
-  int holding_lock;            // Lock ID this process holds (-1 if none)                   
+  int holding_lock;            // Lock ID this process holds (-1 if none)      
+  int has_inherited_priority;              
 };
 
 // Process memory is laid out contiguously, low addresses first:

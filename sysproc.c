@@ -158,17 +158,17 @@ sys_lock(void)
     // Find the holder process and boost priority if needed
     for(holder = ptable.proc; holder < &ptable.proc[NPROC]; holder++) {
       if(holder->pid == holder_pid) {
-        if(p->nice < holder->nice) {
-          if(holder->original_nice == holder->nice) {
-            holder->original_nice = holder->nice;
-          }
-          holder->nice = p->nice;
+        // Only boost if waiter has higher priority AND holder hasn't been boosted yet
+        if(p->nice < holder->nice && !holder->has_inherited_priority) {
+          holder->original_nice = holder->nice;  // Save current nice (could be user-set)
+          holder->nice = p->nice;                // Boost to waiter's priority
+          holder->has_inherited_priority = 1;    // Mark as inherited
         }
         break;
       }
     }
     
-    // Sleep waiting for the lock (sleep handles ptable.lock)
+    // Sleep waiting for the lock
     sleep(&resource_locks[idx], &ptable.lock);
   }
   
@@ -209,15 +209,17 @@ sys_release(void)
   resource_locks[idx].holder_pid = -1;
   p->holding_lock = -1;
   
-  // Restore original priority if it was boosted
-  if(p->nice != p->original_nice) {
+  // ONLY restore priority if it was inherited (not user-set)
+  if(p->has_inherited_priority) {
     p->nice = p->original_nice;
+    p->has_inherited_priority = 0;  // Clear the flag
   }
+  // If has_inherited_priority is 0, the nice value was set by user, don't touch it!
+  
+  // Wake up processes waiting
+  wakeup(&resource_locks[idx]);
   
   release(&ptable.lock);
-  
-  // Wake up processes waiting (do this AFTER releasing ptable.lock)
-  wakeup(&resource_locks[idx]);
   
   return 0;
 }
