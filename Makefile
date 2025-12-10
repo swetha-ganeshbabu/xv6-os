@@ -150,7 +150,7 @@ vectors.S: vectors.pl
 ULIB = ulib.o usys.o printf.o umalloc.o
 
 # User-level threading library
-UTHREAD_LIB = uthreads.o uthreads_swtch.o
+UTHREAD_LIB = uthreads.o uthreads_swtch.o uthreads_io.o
 
 # Compile threading library source files
 uthreads.o: user_threading_library_core/src/uthreads.c user_threading_library_core/src/uthreads.h
@@ -158,6 +158,9 @@ uthreads.o: user_threading_library_core/src/uthreads.c user_threading_library_co
 
 uthreads_swtch.o: user_threading_library_core/src/uthreads_swtch.S
 	$(CC) $(ASFLAGS) -c user_threading_library_core/src/uthreads_swtch.S -o uthreads_swtch.o
+
+uthreads_io.o: user_threading_library_core/src/uthreads_io.c user_threading_library_core/src/uthreads_io.h user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) -I. -Iuser_threading_library_core/src -c user_threading_library_core/src/uthreads_io.c -o uthreads_io.o
 
 # Standard user programs (without threading library)
 _%: %.o $(ULIB)
@@ -226,6 +229,7 @@ UPROGS=\
 	_t_producer_consumer_sem\
 	_t_producer_consumer_chan\
 	_t_reader_writer\
+	_t_file_producer_consumer\
 # _forktest\
 # _stressfs\
 # _usertests\
@@ -240,7 +244,7 @@ clean:
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit \
-	uthreads.o uthreads_swtch.o \
+	uthreads.o uthreads_swtch.o uthreads_io.o \
 	$(UPROGS)
 
 # make a printout
