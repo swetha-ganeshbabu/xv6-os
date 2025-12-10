@@ -149,10 +149,35 @@ vectors.S: vectors.pl
 
 ULIB = ulib.o usys.o printf.o umalloc.o
 
+# User-level threading library
+UTHREAD_LIB = uthreads.o uthreads_swtch.o
+
+# Compile threading library source files
+uthreads.o: user_threading_library_core/src/uthreads.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) -I. -Iuser_threading_library_core/src -c user_threading_library_core/src/uthreads.c -o uthreads.o
+
+uthreads_swtch.o: user_threading_library_core/src/uthreads_swtch.S
+	$(CC) $(ASFLAGS) -c user_threading_library_core/src/uthreads_swtch.S -o uthreads_swtch.o
+
+# Standard user programs (without threading library)
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
+
+# Threaded user programs (with threading library) - use _t_ prefix
+_t_%: t_%.o $(ULIB) $(UTHREAD_LIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+	$(OBJDUMP) -S $@ > t_$*.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > t_$*.sym
+
+# Compile threaded test programs from tests directory
+t_%.o: user_threading_library_core/tests/t_%.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) -I. -Iuser_threading_library_core/src -c $< -o $@
+
+# Compile threaded example programs from examples directory
+t_%.o: user_threading_library_core/examples/t_%.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) -I. -Iuser_threading_library_core/src -c $< -o $@
 
 _forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
@@ -196,6 +221,11 @@ UPROGS=\
 	_locktest1\
 	_locktest2\
 	_locktest3\
+	_t_basic_test\
+	_t_shared_counter\
+	_t_producer_consumer_sem\
+	_t_producer_consumer_chan\
+	_t_reader_writer\
 # _forktest\
 # _stressfs\
 # _usertests\
@@ -205,11 +235,12 @@ fs.img: mkfs README $(UPROGS)
 
 -include *.d
 
-clean: 
+clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit \
+	uthreads.o uthreads_swtch.o \
 	$(UPROGS)
 
 # make a printout
