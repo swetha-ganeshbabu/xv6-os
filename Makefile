@@ -149,10 +149,49 @@ vectors.S: vectors.pl
 
 ULIB = ulib.o usys.o printf.o umalloc.o
 
+# User-Level Threading Library
+# These files implement the cooperative threading library for user programs
+UTHREAD_LIB = uthreads.o uthreads_swtch.o
+
+# Include path for threading library headers (includes root for types.h, user.h)
+THREAD_INCLUDE = -I. -I./user_threading_library_core/src
+
+# Standard user program rule (without threading library)
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
+
+# Threaded user program rule (with threading library)
+# Programs starting with _t_ are linked with the threading library
+_t_%: t_%.o $(ULIB) $(UTHREAD_LIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+	$(OBJDUMP) -S $@ > t_$*.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > t_$*.sym
+
+# Compile threading library source files
+uthreads.o: user_threading_library_core/src/uthreads.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/src/uthreads.c
+
+uthreads_swtch.o: user_threading_library_core/src/uthreads_swtch.S
+	$(CC) $(ASFLAGS) -c -o $@ user_threading_library_core/src/uthreads_swtch.S
+
+# Compile threaded test programs from tests directory
+t_basic_test.o: user_threading_library_core/tests/t_basic_test.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/tests/t_basic_test.c
+
+t_shared_counter.o: user_threading_library_core/tests/t_shared_counter.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/tests/t_shared_counter.c
+
+# Compile threaded example programs from examples directory
+t_producer_consumer_sem.o: user_threading_library_core/examples/t_producer_consumer_sem.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/examples/t_producer_consumer_sem.c
+
+t_producer_consumer_chan.o: user_threading_library_core/examples/t_producer_consumer_chan.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/examples/t_producer_consumer_chan.c
+
+t_reader_writer.o: user_threading_library_core/examples/t_reader_writer.c user_threading_library_core/src/uthreads.h
+	$(CC) $(CFLAGS) $(THREAD_INCLUDE) -c -o $@ user_threading_library_core/examples/t_reader_writer.c
 
 _forktest: forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
@@ -196,6 +235,11 @@ UPROGS=\
 	_locktest1\
 	_locktest2\
 	_locktest3\
+	_t_basic_test\
+	_t_shared_counter\
+	_t_producer_consumer_sem\
+	_t_producer_consumer_chan\
+	_t_reader_writer\
 # _forktest\
 # _stressfs\
 # _usertests\
@@ -205,11 +249,12 @@ fs.img: mkfs README $(UPROGS)
 
 -include *.d
 
-clean: 
+clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit \
+	uthreads.o uthreads_swtch.o \
 	$(UPROGS)
 
 # make a printout
